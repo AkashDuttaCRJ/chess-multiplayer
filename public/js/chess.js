@@ -1,83 +1,89 @@
 class Chess {
-    constructor(squareSize) {
-        this.squareSize = squareSize;
-        this.board = new Board(squareSize).board;
+    constructor() {
+        this.board = [
+            ['br', 'bn', 'bb', 'bq', 'bk', 'bb', 'bn', 'br'],
+            ['bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp', 'bp'],
+            ['--', '--', '--', '--', '--', '--', '--', '--'],
+            ['--', '--', '--', '--', '--', '--', '--', '--'],
+            ['--', '--', '--', '--', '--', '--', '--', '--'],
+            ['--', '--', '--', '--', '--', '--', '--', '--'],
+            ['wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp', 'wp'],
+            ['wr', 'wn', 'wb', 'wq', 'wk', 'wb', 'wn', 'wr']];
         this.isWhiteTurn = true;
-        this.isWhiteKingChecked = false;
-        this.isBlackKingChecked = false;
-        this.isWhiteKingMoved = false;
-        this.isBlackKingMoved = false;
-        this.gameOver = false;
-        // this.isWhiteKingCastled = false;
-        // this.isBlackKingCastled = false;
+        this.history = [];
+        this.pieces = ['br', 'bn', 'bb', 'bq', 'bk', 'bp', 'wq', 'wk', 'wb', 'wn', 'wr', 'wp'];
     }
 
-    getValidMoves(posX, posY) {
-        const validMoves = [];
-        return validMoves;
+    makeMove(move) {
+        this.board[move.startX][move.startY] = '--';
+        this.board[move.endX][move.endY] = move.pieceMoved;
+        this.history.push(move);
+        this.isWhiteTurn = !this.isWhiteTurn;
     }
+
+    undoMove() {
+        if (this.history.length !== 0) {
+            const move = this.history.pop();
+            this.board[move.startX][move.startY] = move.pieceMoved;
+            this.board[move.endX][move.endY] = move.pieceCaptured;
+            this.isWhiteTurn = !this.isWhiteTurn;
+        }
+    }
+
+    getValidMoves() {
+        return this.getAllPossibleMoves();
+    }
+
+    getAllPossibleMoves() {
+        let moves = [];
+        let test = new Move([6,4], [4,4], this.board);
+        // console.log(test);
+        moves.push(test);
+        for (let r = 0; r < this.board.length; r++) {
+            for (let c = 0; c < this.board[r].length; c++) {
+                let pieceColor = this.board[r][c][0];
+                if (pieceColor === 'w' && this.isWhiteTurn || pieceColor === 'b' && !this.isWhiteTurn) {
+                    let pieceType = this.board[r][c][1];
+                    if (pieceType === 'p') {
+                        this.getPawnMoves(r, c, moves);
+                    } else if (pieceType === 'r') {
+                        this.getRookMoves(r, c, moves);
+                    } else if (pieceType === 'n') {
+                        this.getKnightMoves(r, c, moves);
+                    } else if (pieceType === 'b') {
+                        this.getBishopMoves(r, c, moves);
+                    } else if (pieceType === 'q') {
+                        this.getQueenMoves(r, c, moves);
+                    } else if (pieceType === 'k') {
+                        this.getKingMoves(r, c, moves);
+                    }
+                }
+            }
+        }
+        return moves;
+    }
+
+    getPawnMoves(r, c, moves) {}
+
+    getRookMoves(r, c, moves) {}
+
+    getKnightMoves(r, c, moves) {}
+
+    getBishopMoves(r, c, moves) {}
+
+    getQueenMoves(r, c, moves) {}
+
+    getKingMoves(r, c, moves) {}
+
 }
 
-class Board {
-    constructor(squareSize) {
-        this.squareSize = squareSize;
-        this.board = [];
-        this.pieces = [
-            {name: 'bR',indexes: [0, 0]},
-            {name: 'bN',indexes: [1, 0]},
-            {name: 'bB',indexes: [2, 0]},
-            {name: 'bQ',indexes: [3, 0]},
-            {name: 'bK',indexes: [4, 0]},
-            {name: 'bB',indexes: [5, 0]},
-            {name: 'bN',indexes: [6, 0]},
-            {name: 'bR',indexes: [7, 0]},
-            {name: 'bP',indexes: [0, 1]},
-            {name: 'bP',indexes: [1, 1]},
-            {name: 'bP',indexes: [2, 1]},
-            {name: 'bP',indexes: [3, 1]},
-            {name: 'bP',indexes: [4, 1]},
-            {name: 'bP',indexes: [5, 1]},
-            {name: 'bP',indexes: [6, 1]},
-            {name: 'bP',indexes: [7, 1]},
-            {name: 'wP',indexes: [0, 6]},
-            {name: 'wP',indexes: [1, 6]},
-            {name: 'wP',indexes: [2, 6]},
-            {name: 'wP',indexes: [3, 6]},
-            {name: 'wP',indexes: [4, 6]},
-            {name: 'wP',indexes: [5, 6]},
-            {name: 'wP',indexes: [6, 6]},
-            {name: 'wP',indexes: [7, 6]},
-            {name: 'wR',indexes: [0, 7]},
-            {name: 'wN',indexes: [1, 7]},
-            {name: 'wB',indexes: [2, 7]},
-            {name: 'wQ',indexes: [3, 7]},
-            {name: 'wK',indexes: [4, 7]},
-            {name: 'wB',indexes: [5, 7]},
-            {name: 'wN',indexes: [6, 7]},
-            {name: 'wR',indexes: [7, 7]}
-        ];
-        this.initBoard();
-    }
-
-    initBoard() {
-        this.pieces.forEach(piece => {
-            const posX = piece.indexes[0] * this.squareSize;
-            const posY = piece.indexes[1] * this.squareSize;
-            const color = piece.name.charAt(0) === 'w' ? 'white' : 'black';
-            const type = piece.name.charAt(1);
-            const url = `./assets/images2/${piece.name.charAt(0)}${type.toLowerCase()}.png`;
-            const pieceObj = new Piece(type, color, url, posX, posY);
-            this.board.push(pieceObj);
-        })
-    }
-}
-
-class Piece {
-    constructor(piece, color, imageUrl, x, y) {
-        this.piece = piece;
-        this.color = color;
-        this.imageUrl = imageUrl;
-        this.x = x;
-        this.y = y;
+class Move {
+    constructor(startSq, endSq, board) {
+        this.startX = startSq[0];
+        this.startY = startSq[1];
+        this.endX = endSq[0];
+        this.endY = endSq[1];
+        this.pieceMoved = board[this.startX][this.startY];
+        this.pieceCaptured = board[this.endX][this.endY];
     }
 }
